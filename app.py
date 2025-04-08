@@ -4,7 +4,8 @@ from openai import OpenAI  # Nueva forma de importar
 import time
 
 # Configuración de OpenAI (versión actualizada)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Configuración CORRECTA (nuevo formato)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"]["key"])  # Clave desde Secrets
 
 # Interfaz de usuario (manteniendo tu diseño nutricional)
 st.title("🍏 NutriGen - Planificador Nutricional")
