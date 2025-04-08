@@ -1,5 +1,6 @@
 import streamlit as st
-import openai
+from openai import OpenAI  # Nueva forma de importar
+import time
 
 # Configuración CORRECTA (nuevo formato)
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"]["key"])  # Clave desde Secrets
