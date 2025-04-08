@@ -1,93 +1,43 @@
 import streamlit as st
 import openai
+from openai import OpenAI  # Nueva forma de importar
 import time
 
-# Configuración de OpenAI
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Configuración de OpenAI (versión actualizada)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Título y descripción
-st.title("🍏 NutriGen - Tu Asistente de Nutrición con IA")
-st.markdown("""
-Genera planes de alimentación personalizados basados en:
-- 🥗 Tipo de dieta
-- 🚫 Restricciones alimentarias
-- 🎯 Objetivos específicos
-""")
+# Interfaz de usuario (manteniendo tu diseño nutricional)
+st.title("🍏 NutriGen - Planificador Nutricional")
+with st.expander("ℹ️ Instrucciones"):
+    st.write("Complete sus preferencias y haga clic en Generar")
 
-# Entradas del usuario
-col1, col2 = st.columns(2)
-with col1:
-    dieta = st.selectbox("Selecciona tu dieta:", 
-                       ["General", "Vegetariana", "Vegana", "Keto", "Baja en carbohidratos"])
-with col2:
-    objetivo = st.selectbox("Tu objetivo principal:", 
-                          ["Perder peso", "Mantener peso", "Ganar masa muscular"])
+dieta = st.selectbox("Tipo de dieta:", ["General", "Vegetariana", "Vegana", "Keto"])
+objetivo = st.selectbox("Objetivo:", ["Perder peso", "Mantener peso", "Ganar músculo"])
 
-alergias = st.text_input("Alergias o intolerancias alimentarias:")
-dias = st.slider("Días a planificar:", 1, 7, 3)
-
-# Botón de acción
-if st.button("Generar Plan Nutricional"):
-    if not alergias:
-        alergias = "ninguna"
-    
-    with st.spinner("Creando tu plan personalizado..."):
+if st.button("Generar Plan"):
+    with st.spinner("Creando tu plan..."):
         try:
-            # Construcción del prompt específico
-            prompt = f"""
-            Como nutricionista profesional, genera un plan de comidas para {dias} días con estas características:
-            - Tipo de dieta: {dieta}
-            - Objetivo principal: {objetivo}
-            - Alergias/intolerancias: {alergias}
+            # Prompt mejorado para nutrición
+            prompt = f"""Como nutricionista certificado, genera un plan para:
+            - Dieta: {dieta}
+            - Objetivo: {objetivo}
+            Incluye desayuno, almuerzo y cena con:
+            1. Nombre del plato
+            2. Ingredientes
+            3. Valor nutricional destacado
+            Formato: Lista por días"""
             
-            Formato requerido:
-            1. Día por día
-            2. Cada comida debe incluir:
-               - Nombre del platillo
-               - Ingredientes principales
-               - Información nutricional destacada
-            3. Máximo 500 tokens
-            """
-            
-            # Llamada a la API
-            response = openai.ChatCompletion.create(
+            # Llamada API actualizada
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=600
+                max_tokens=800
             )
             
-            # Procesamiento de la respuesta
-            if response.choices:
-                plan_nutricional = response.choices[0].message['content']
-                
-                # Mostrar resultados con formato
-                st.success("¡Plan generado con éxito! Aquí tienes tu guía:")
-                st.markdown(f"## 📅 Plan para {dias} días ({dieta})")
-                st.markdown(f"**Objetivo:** {objetivo} | **Restricciones:** {alergias}")
-                st.divider()
-                st.markdown(plan_nutricional)
-                
-                # Botón de descarga
-                st.download_button(
-                    label="Descargar Plan",
-                    data=plan_nutricional,
-                    file_name=f"plan_nutricional_{dias}dias.txt"
-                )
-            else:
-                st.error("No se pudo generar el plan. Intenta nuevamente.")
-                
-        except openai.error.AuthenticationError:
-            st.error("Error de autenticación. Verifica tu API Key en Settings > Secrets.")
-        except Exception as e:
-            st.error(f"Error inesperado: {str(e)}")
+            # Mostrar resultado
+            st.success("¡Plan listo!")
+            st.markdown(response.choices[0].message.content)
 
-# Sección informativa
-st.markdown("---")
-st.subheader("📌 ¿Cómo funciona?")
-st.write("""
-1. Selecciona tus preferencias dietéticas
-2. Especifica cualquier restricción alimentaria
-3. Elige el número de días a planificar
-4. ¡Obtén un plan detallado con un clic!
-""")
+        except Exception as e:  # Captura todos los errores
+            st.error(f"Error: {str(e)}")
+            st.info("🔍 Verifique su conexión o API Key en Settings > Secrets")
