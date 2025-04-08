@@ -3,54 +3,42 @@ import openai
 from openai import OpenAI  # Nueva forma de importar
 import time
 
+# Configuración de OpenAI (versión actualizada)
 # Configuración CORRECTA (nuevo formato)
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"]["key"])  # Clave desde Secrets
 
-# Título y descripción
-st.title("NutriAI: Planificador de Comidas Inteligente")
-st.markdown("""
-🍎 ¡Planifica tus comidas semanales con IA!
-Esta aplicación genera planes de alimentación personalizados considerando:
-- Preferencias dietéticas
-- Restricciones alimentarias
-- Objetivos nutricionales
-""")
+# Interfaz de usuario (manteniendo tu diseño nutricional)
+st.title("🍏 NutriGen - Planificador Nutricional")
+with st.expander("ℹ️ Instrucciones"):
+    st.write("Complete sus preferencias y haga clic en Generar")
 
-# Entradas de usuario
-dietas = st.multiselect("Selecciona tu dieta:", ["Vegetariana", "Vegana", "Sin gluten", "Keto", "Baja en carbohidratos"])
-alergias = st.text_input("Alergias alimentarias:")
-objetivos = st.selectbox("Tu objetivo principal:", ["Perder peso", "Mantener peso", "Ganar masa muscular"])
-dias = st.slider("Días a planificar:", 1, 7, 5)
+dieta = st.selectbox("Tipo de dieta:", ["General", "Vegetariana", "Vegana", "Keto"])
+objetivo = st.selectbox("Objetivo:", ["Perder peso", "Mantener peso", "Ganar músculo"])
 
-# Botón de acción
-if st.button("Generar Plan Nutricional"):
-    with st.spinner("Creando tu plan personalizado..."):
+if st.button("Generar Plan"):
+    with st.spinner("Creando tu plan..."):
         try:
-            prompt = f"""
-            Crea un plan de comidas para {dias} días que sea {', '.join(dietas)}.
-            Considera estas alergias: {alergias}. Objetivo principal: {objetivos}.
-            Incluye desayuno, almuerzo, merienda y cena.
-            Formato: Lista con días, comidas e ingredientes principales.
-            """
+            # Prompt mejorado para nutrición
+            prompt = f"""Como nutricionista certificado, genera un plan para:
+            - Dieta: {dieta}
+            - Objetivo: {objetivo}
+            Incluye desayuno, almuerzo y cena con:
+            1. Nombre del plato
+            2. Ingredientes
+            3. Valor nutricional destacado
+            Formato: Lista por días"""
             
-            response = openai.ChatCompletion.create(
+            # Llamada API actualizada
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=800
             )
             
-            st.success("¡Plan generado con éxito!")
-            st.markdown("### Tu Plan Nutricional Personalizado")
-            st.write(response.choices[0].message['content'])
-            
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+            # Mostrar resultado
+            st.success("¡Plan listo!")
+            st.markdown(response.choices[0].message.content)
 
-# Sección "Cómo funciona"
-st.markdown("---")
-st.subheader("📌 Cómo funciona:")
-st.write("""
-1. Selecciona tus preferencias dietéticas
-2. Especifica alergias o restricciones
-3. Elige tu objetivo principal
-4. ¡Genera tu plan con un clic!
-""")
+        except Exception as e:  # Captura todos los errores
+            st.error(f"Error: {str(e)}")
+            st.info("🔍 Verifique su conexión o API Key en Settings > Secrets")
