@@ -1,8 +1,8 @@
 import streamlit as st
 import openai
 
-# Configuración de OpenAI
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Configuración CORRECTA (nuevo formato)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"]["key"])  # Clave desde Secrets
 
 # Título y descripción
 st.title("NutriAI: Planificador de Comidas Inteligente")
